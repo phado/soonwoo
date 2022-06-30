@@ -3,6 +3,7 @@ import os ,glob
 import shutil
 from PIL import Image
 import cv2
+import matplotlib.pyplot as plt
 
 num_augmented_images = 200 #증강해서 추가할 데이터 개수
 
@@ -24,7 +25,7 @@ for i in range(1, num_augmented_images):
     img_name,ext = os.path.splitext(img_names)
     origin_image_path1,ext = os.path.splitext(origin_image_path)
     image = cv2.imread(origin_image_path)
-    random_augment = random.randrange(1,2)
+    random_augment = random.randrange(3,4)
 
     if(random_augment == 1):
         #이미지 좌우 반전
@@ -38,12 +39,9 @@ for i in range(1, num_augmented_images):
         srctxt = full_name+img_name+ '_'+str(augment_cnt)+ '_revers' +'.txt'
         dh, dw, _ = src.shape
         
-
         fl = open(srctxt, 'r')
         data = fl.readlines()
         fl.close()
-
-        
 
         f = open(srctxt, 'w')
         for dt in data:
@@ -64,59 +62,9 @@ for i in range(1, num_augmented_images):
             revers_x = revers_startx+(revers_lastx-revers_startx)/2
             revers_x= round(revers_x/dw,6)
 
-
-
-
-            # #bounding box로
-            # img_w = dw           # 이미지 가로
-            # img_h = dh            # 이미지 세로
-
-            # dww = 1./img_w
-            # dhh = 1./img_h
-
-
-            # bx = x/dww
-            # by = y/dhh
-            # bw = round(w/dww) #box가로
-            # bh = round(h/dhh) #box세로
-
-            # x1 = round(bx-bw/2) #최상단 x 좌표
-            # y1 = round((2*by-bh)/2)
-
-            # # x2=round(w/dww)   #box가로
-            # # y2= round(h/dhh)
-
-            # revers_strarx = x1+img_w/2
-            # revers_starty = y1
-
-            # #다시 yolo로
-            # dww = 1./img_w
-            # dhh = 1./img_h
-            
-            # # x = (float(revers_strarx)+float(revers_strarx)+float(x2))/2.0
-            # yx = revers_strarx + bw/2
-            # # y = (float(y1)+float(y1)+float(y2))/2.0
-            # yy= revers_starty - bh/2
-            # yw = float(bw)
-            # yh = float(by)
-
-            # final_x= round(yx * dww,6)
-
-
             b = str(revers_x)
             f.write(dt.replace(str(x), b,1))
-
         f.close()
-
-        
-        
-        
-
-       
-        
-       
-        
-            
 
     if(random_augment ==2):
         #이미지 밝게
@@ -125,3 +73,15 @@ for i in range(1, num_augmented_images):
         # bright_image.save(full_name + 'revers_' + str(augment_cnt) + ext)
         shutil.copy(full_name+img_name+'.txt',file_path+'/'+'txt'+'/'+img_name+'.txt')
         shutil.move(file_path+'/'+'txt'+'/'+img_name+'.txt',full_name+img_name+ '_'+str(augment_cnt)+ '_bright' +'.txt')
+
+    if(random_augment == 3):
+        #이미지 회전
+        dh, dw, _ = image.shape
+        rotation_image_conter = cv2.getRotationMatrix2D((dw/2.0,dh/2.0), #회전 중심
+                                                        45,#회전 각도(양수는 반시계방향, 음수는 시계방향)
+                                                        1)#이미지 배율
+        #어파인 변환 함수(src img, 실수형 2x3어파인 변환 행렬,(w,h),출력영상, 보간법,가장자리 픽셀 확장 방식, _)
+        image_rotation = cv2.warpAffine(image,rotation_image_conter,(dw,dh))
+        plt.imshow(image_rotation)
+        plt.show()
+        
